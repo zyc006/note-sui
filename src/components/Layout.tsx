@@ -5,13 +5,12 @@ import { NodeOperator } from "./NodeOperator";
 import type { GridCell } from "../types";
 
 export function Layout() {
-  const [gridData, setGridData] = useState(() => {
+  function initGridData() {
     if (localStorage.getItem("gridData")) {
       return JSON.parse(localStorage.getItem("gridData") || "");
     }
     const rows = 5;
     const cols = 7;
-
     // 计算中间位置（行索引从0开始）
     const middleRow = Math.floor(rows / 2); // 第3行（索引2）
     const middleCol = Math.floor(cols / 2); // 第4列（索引3）
@@ -32,7 +31,8 @@ export function Layout() {
         };
       })
     );
-  });
+  }
+  const [gridData, setGridData] = useState(initGridData);
   // 在组件内部
   const debouncedSave = debounce((data: GridCell[][]) => {
     localStorage.setItem("gridData", JSON.stringify(data));
@@ -42,23 +42,24 @@ export function Layout() {
     debouncedSave(gridData);
     return () => debouncedSave.cancel(); // 清理函数
   }, [gridData, debouncedSave]);
-  const [curNode, setCurNode] = useState(() => {
-    // 使用gridData的第一个元素作为初始值
-    return gridData[0][0];
-  });
+  const [curRow, setCurRow] = useState(0);
+  const [curCol, setCurCol] = useState(0);
   return (
     <div className="w-screen h-screen bg-[rgb(24,24,24)] flex justify-around items-center text-white overflow-hidden">
       <Map
         gridData={gridData}
-        curNode={curNode as GridCell}
-        setCurNode={setCurNode}
+        curRow={curRow}
+        curCol={curCol}
+        setCurRow={setCurRow}
+        setCurCol={setCurCol}
       ></Map>
       <div className="basis-1/3 h-full">
-        {curNode && (
+        {gridData[curRow][curCol] && (
           <NodeOperator
+            gridData={gridData}
             setGridData={setGridData}
-            curNode={curNode as GridCell}
-            setCurNode={setCurNode}
+            curRow={curRow}
+            curCol={curCol}
           ></NodeOperator>
         )}
       </div>
