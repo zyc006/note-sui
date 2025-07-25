@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { debounce } from "lodash";
 import { Map } from "./Map";
-import { ItemOperator } from "./ItemOperator";
+import { NodeOperator } from "./NodeOperator";
 import type { GridCell } from "../types";
 
 export function Layout() {
@@ -55,11 +55,11 @@ export function Layout() {
       ></Map>
       <div className="basis-1/3 h-full">
         {curNode && (
-          <ItemOperator
+          <NodeOperator
             setGridData={setGridData}
             curNode={curNode as GridCell}
             setCurNode={setCurNode}
-          ></ItemOperator>
+          ></NodeOperator>
         )}
       </div>
     </div>

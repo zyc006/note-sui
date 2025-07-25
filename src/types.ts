@@ -6,6 +6,7 @@ export interface GridCell {
   color: string;
   type: string;
   tip: string;
+  reward: string;
   // 可添加更多字段
 }
 
