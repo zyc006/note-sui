@@ -1,16 +1,19 @@
-import { useEffect, useState, type ChangeEvent } from "react";
+import { type ChangeEvent } from "react";
 import type { GridCell, GridData } from "../types";
 interface NodeOperatorProps {
+  gridData: GridData;
   setGridData: React.Dispatch<React.SetStateAction<GridData>>;
-  curNode: GridCell;
-  setCurNode: React.Dispatch<React.SetStateAction<GridCell>>;
+  curRow: number;
+  curCol: number;
 }
 
 export function NodeOperator({
+  gridData,
   setGridData,
-  curNode,
-  setCurNode,
+  curRow,
+  curCol,
 }: NodeOperatorProps) {
+  const curNode = gridData[curRow][curCol];
   const nodeType = [
     {
       name: "未知",
@@ -63,23 +66,7 @@ export function NodeOperator({
       color: "#0e0e0e",
     },
   ];
-  const { row, col } = curNode;
-  const [reward, setReward] = useState("");
-  useEffect(() => {
-    const newNode = {
-      ...curNode,
-      reward,
-    };
-    setGridData((prevGridData: GridData) => {
-      // Clone the grid data to avoid mutating state directly
-      const newGridData = prevGridData.map((row) => [...row]);
-      // Update the specific cell's content or id as needed
 
-      newGridData[row][col] = newNode;
-      return newGridData;
-    });
-    setCurNode(newNode);
-  }, [col, curNode, reward, row, setCurNode, setGridData]);
   function handleClick(node: { name: string; id: string; color: string }) {
     const newNode = {
       ...curNode,
@@ -92,29 +79,26 @@ export function NodeOperator({
       const newGridData = prevGridData.map((row) => [...row]);
       // Update the specific cell's content or id as needed
 
-      newGridData[row][col] = newNode;
+      newGridData[curRow][curCol] = newNode;
       return newGridData;
     });
-    setCurNode(newNode);
   }
   function handleChange(e: ChangeEvent<HTMLTextAreaElement>) {
     const updatedNode = {
       ...curNode,
       tip: e.target.value,
     };
-    // 更新curNode
-    setCurNode(updatedNode);
     // 同时更新gridData中对应的节点
     setGridData((prevGridData: GridData) => {
       const newGridData = prevGridData.map((row) => [...row]);
-      newGridData[row][col] = updatedNode;
+      newGridData[curRow][curCol] = updatedNode;
       return newGridData;
     });
   }
   return (
     <div className="h-screen w-2xl bg-[rgb(36,36,36)] p-5 flex flex-col overflow-hidden">
       <div className="text-white text-lg">
-        编辑格点【{row + 1}，{col + 1}】
+        编辑格点【{curNode.row + 1}，{curNode.col + 1}】
       </div>
       <div className="overflow-y-auto flex-1 scrollbar-hide-until-hover">
         <div className="node-type-container">
@@ -128,10 +112,10 @@ export function NodeOperator({
                 w-16 h-8 flex items-center justify-center
                 border-1 rounded-lg transition-all duration-300
                 hover:scale-105 hover:shadow-sm
-                focus:outline-none focus:ring-1 focus:ring-opacity-50 text-white
+                text-white
                 ${
                   node.id === curNode.type
-                    ? "border-white shadow-md"
+                    ? "border-white shadow-md outline-none"
                     : "border-gray-600"
                 }
               `}
@@ -146,7 +130,11 @@ export function NodeOperator({
             )}
           </div>
         </div>
-        <Reward nodeType={curNode.type} setReward={setReward}></Reward>
+        <Reward
+          nodeType={curNode.type}
+          curNode={curNode}
+          setGridData={setGridData}
+        ></Reward>
         <Title text="笔记"></Title>
         <div className="mb-4">
           <textarea
@@ -163,10 +151,12 @@ export function NodeOperator({
 
 function Reward({
   nodeType,
-  setReward,
+  curNode,
+  setGridData,
 }: {
   nodeType: string;
-  setReward: React.Dispatch<React.SetStateAction<string>>;
+  curNode: GridCell;
+  setGridData: React.Dispatch<React.SetStateAction<GridData>>;
 }) {
   const rewardInfo = {
     zayi: [
@@ -225,8 +215,10 @@ function Reward({
         <div>
           {rewardInfo.zayi.map((item) => (
             <NodeEventInfo
-              setReward={setReward}
+              key={item.name}
               eventInfo={item}
+              curNode={curNode}
+              setGridData={setGridData}
             ></NodeEventInfo>
           ))}
         </div>
@@ -235,8 +227,10 @@ function Reward({
         <div>
           {rewardInfo.changle.map((item) => (
             <NodeEventInfo
-              setReward={setReward}
+              key={item.name}
               eventInfo={item}
+              curNode={curNode}
+              setGridData={setGridData}
             ></NodeEventInfo>
           ))}
         </div>
@@ -245,8 +239,10 @@ function Reward({
         <div>
           {rewardInfo.shiyi.map((item) => (
             <NodeEventInfo
-              setReward={setReward}
+              key={item.name}
               eventInfo={item}
+              curNode={curNode}
+              setGridData={setGridData}
             ></NodeEventInfo>
           ))}
         </div>
@@ -266,13 +262,25 @@ function Title({ text }: { text: string }) {
 
 function NodeEventInfo({
   eventInfo,
-  setReward,
+  curNode,
+  setGridData,
 }: {
   eventInfo: { name: string; info: string[] };
-  setReward: React.Dispatch<React.SetStateAction<string>>;
+  curNode: GridCell;
+  setGridData: React.Dispatch<React.SetStateAction<GridData>>;
 }) {
-  function handleFocus(reward: string) {
-    setReward(reward);
+  function handleFocus(info: string) {
+    const updatedNode = {
+      ...curNode,
+      reward: info,
+    };
+    // 同时更新gridData中对应的节点
+    setGridData((prevGridData: GridData) => {
+      const newGridData = prevGridData.map((row) => [...row]);
+      console.log(newGridData);
+      newGridData[curNode.row][curNode.col] = updatedNode;
+      return newGridData;
+    });
   }
   if (!eventInfo.info) {
     return null;
@@ -287,8 +295,12 @@ function NodeEventInfo({
             className={`
             min-w-12 border-1 rounded-lg transition-all duration-300
             hover:scale-105 hover:shadow-lg
-            focus:outline-none focus:ring-1 focus:ring-opacity-50 text-white focus:bg-[#008a7f]
-            border-gray-600 p-1 bg-[#3d3d3d]
+            text-white border-gray-600 p-1 bg-[#3d3d3d]
+						${
+              curNode.reward === info
+                ? "bg-[#008a7f] border-white shadow-md outline-none"
+                : ""
+            }
           `}
             onFocus={() => handleFocus(info)}
           >

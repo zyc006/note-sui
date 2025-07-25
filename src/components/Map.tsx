@@ -2,15 +2,25 @@
 import type { GridCell, GridData } from "../types";
 interface MapProps {
   gridData: GridData;
-  curNode: GridCell;
-  setCurNode: (node: GridCell) => void;
+  curRow: number;
+  curCol: number;
+  setCurRow: (row: number) => void;
+  setCurCol: (col: number) => void;
+  // curNode: GridCell;
+  // setCurNode: (node: GridCell) => void;
 }
 
-export function Map({ gridData, curNode, setCurNode }: MapProps) {
+export function Map({
+  gridData,
+  curRow,
+  curCol,
+  setCurRow,
+  setCurCol,
+}: MapProps) {
   function handleClick(cell: GridCell) {
     if (cell.row == 2 && cell.col == 3) return;
-    const updatedCell = gridData[cell.row][cell.col];
-    setCurNode(updatedCell);
+    setCurRow(cell.row);
+    setCurCol(cell.col);
   }
   return (
     <div className="w-2xl grid grid-cols-7 gap-4">
@@ -18,7 +28,7 @@ export function Map({ gridData, curNode, setCurNode }: MapProps) {
       {gridData.flat().map((cell) => (
         <div
           className={`w-16 h-16 border rounded-sm flex justify-center items-center hover:cursor-pointer ${
-            cell.row === curNode.row && cell.col === curNode.col
+            cell.row === curRow && cell.col === curCol
               ? "border-white shadow-md"
               : "border-gray-600"
           }`}
